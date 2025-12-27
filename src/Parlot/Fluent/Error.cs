@@ -26,7 +26,8 @@ public sealed class ElseError<T> : Parser<T>, ICompilable
         if (!_parser.Parse(context, ref result))
         {
             context.ExitParser(this);
-            throw new ParseException(_message, context.Scanner.Cursor.Position);
+            context.HandleError(_message, context.Scanner.Cursor.Position);
+            return false;
         }
 
         context.ExitParser(this);
@@ -46,7 +47,8 @@ public sealed class ElseError<T> : Parser<T>, ICompilable
         // }
         // else
         // {
-        //    throw new ParseException(_message, context.Scanner.Cursor.Position);
+        //    context.HandleError(_message, context.Scanner.Cursor.Position);
+        //    success = false;
         // }
         //
 
@@ -65,7 +67,10 @@ public sealed class ElseError<T> : Parser<T>, ICompilable
                         context.DiscardResult
                             ? Expression.Empty()
                             : Expression.Assign(result.Value, parserCompileResult.Value),
-                        context.ThrowParseException(Expression.Constant(_message))
+                        Expression.Block(
+                            context.HandleError(Expression.Constant(_message)),
+                            Expression.Assign(result.Success, Expression.Constant(false))
+                        )
 
 
                 ))
@@ -97,7 +102,8 @@ public sealed class Error<T> : Parser<T>, ICompilable
         if (_parser.Parse(context, ref result))
         {
             context.ExitParser(this);
-            throw new ParseException(_message, context.Scanner.Cursor.Position);
+            context.HandleError(_message, context.Scanner.Cursor.Position);
+            return false;
         }
 
         context.ExitParser(this);
@@ -114,7 +120,7 @@ public sealed class Error<T> : Parser<T>, ICompilable
         // if (parser1.Success)
         // {
         //    value = parser1.Value;
-        //    throw new ParseException(_message, context.Scanner.Cursor.Position);
+        //    context.HandleError(_message, context.Scanner.Cursor.Position);
         // }
 
         var parserCompileResult = _parser.Build(context, requireResult: false);
@@ -125,7 +131,7 @@ public sealed class Error<T> : Parser<T>, ICompilable
                 .Append(
                     Expression.IfThen(
                         parserCompileResult.Success,
-                        context.ThrowParseException(Expression.Constant(_message))
+                        context.HandleError(Expression.Constant(_message))
                     )
                 )
         );
@@ -171,7 +177,8 @@ public sealed class Error<T, U> : Parser<U>, ICompilable, ISeekable
         if (_parser.Parse(context, ref parsed))
         {
             context.ExitParser(this);
-            throw new ParseException(_message, context.Scanner.Cursor.Position);
+            context.HandleError(_message, context.Scanner.Cursor.Position);
+            return false;
         }
 
         context.ExitParser(this);
@@ -187,7 +194,7 @@ public sealed class Error<T, U> : Parser<U>, ICompilable, ISeekable
         // 
         // if (parser1.Success)
         // {
-        //    throw new ParseException(_message, context.Scanner.Cursor.Position);
+        //    context.HandleError(_message, context.Scanner.Cursor.Position);
         // }
 
         var parserCompileResult = _parser.Build(context, requireResult: false);
@@ -198,7 +205,7 @@ public sealed class Error<T, U> : Parser<U>, ICompilable, ISeekable
                 .Append(
                     Expression.IfThen(
                         parserCompileResult.Success,
-                        context.ThrowParseException(Expression.Constant(_message))
+                        context.HandleError(Expression.Constant(_message))
                     )
                 )
         );
