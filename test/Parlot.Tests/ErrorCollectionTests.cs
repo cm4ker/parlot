@@ -205,4 +205,54 @@ public class ErrorCollectionTests
         context.Errors.Clear();
         Assert.Empty(context.Errors);
     }
+
+    [Fact]
+    public void CompiledElseErrorRespectsFlag()
+    {
+        // Test compiled version respects ContinueOnError flag
+        Parser<char> parser = Terms.Char('a').ElseError("Expected 'a'").Compile();
+        var scanner = new Scanner("b");
+        var context = new ParseContext(scanner, continueOnError: true);
+        
+        var result = new ParseResult<char>();
+        var success = parser.Parse(context, ref result);
+        
+        Assert.False(success);
+        Assert.Single(context.Errors);
+        Assert.Equal("Expected 'a'", context.Errors[0].Message);
+    }
+
+    [Fact]
+    public void CompiledErrorRespectsFlag()
+    {
+        // Test compiled version respects ContinueOnError flag
+        Parser<char> parser = Terms.Char('a').Error("Should not match 'a'").Compile();
+        var scanner = new Scanner("a");
+        var context = new ParseContext(scanner, continueOnError: true);
+        
+        var result = new ParseResult<char>();
+        var success = parser.Parse(context, ref result);
+        
+        Assert.False(success);
+        Assert.Single(context.Errors);
+        Assert.Equal("Should not match 'a'", context.Errors[0].Message);
+    }
+
+    [Fact]
+    public void CompiledErrorWithGenericTypeRespectsFlag()
+    {
+        // Test compiled version with generic type respects ContinueOnError flag
+        Parser<char> innerParser = Terms.Char('a');
+        Parser<object> parser = innerParser.Error<object>("Should not match 'a'").Compile();
+        
+        var scanner = new Scanner("a");
+        var context = new ParseContext(scanner, continueOnError: true);
+        
+        var result = new ParseResult<object>();
+        var success = parser.Parse(context, ref result);
+        
+        Assert.False(success);
+        Assert.Single(context.Errors);
+        Assert.Equal("Should not match 'a'", context.Errors[0].Message);
+    }
 }

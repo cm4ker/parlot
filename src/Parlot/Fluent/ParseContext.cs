@@ -189,6 +189,28 @@ public class ParseContext
     }
 
     /// <summary>
+    /// Handles a parse error by either throwing an exception or collecting it based on the ContinueOnError flag.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="position">The position where the error occurred.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void HandleError(string message, TextPosition position)
+    {
+        if (ContinueOnError)
+        {
+            Errors.Add(new ParseError
+            {
+                Message = message,
+                Position = position
+            });
+        }
+        else
+        {
+            throw new ParseException(message, position);
+        }
+    }
+
+    /// <summary>
     /// Represents a parser instance at a specific position for cycle detection.
     /// </summary>
     private readonly record struct ParserPosition(object Parser, int Position);

@@ -62,6 +62,7 @@ public static class ExpressionHelper
     public static MemberExpression Buffer(this CompilationContext context) => Expression.Field(context.Scanner(), "Buffer");
     public static Expression ThrowObject(this CompilationContext _, Expression o) => Expression.Throw(Expression.New(Exception_ToString, Expression.Call(o, o.Type.GetMethod("ToString", [])!)));
     public static Expression ThrowParseException(this CompilationContext context, Expression message) => Expression.Throw(Expression.New(typeof(ParseException).GetConstructors().First(), [message, context.Position()]));
+    public static Expression HandleError(this CompilationContext context, Expression message) => Expression.Call(context.ParseContext, typeof(ParseContext).GetMethod(nameof(ParseContext.HandleError))!, [message, context.Position()]);
     public static Expression BreakPoint(this CompilationContext _, Expression state, Action<object> action) => Expression.Invoke(Expression.Constant(action, typeof(Action<object>)), Expression.Convert(state, typeof(object)));
 
     public static MethodCallExpression ReadSingleQuotedString(this CompilationContext context) => Expression.Call(context.Scanner(), Scanner_ReadSingleQuotedString);
