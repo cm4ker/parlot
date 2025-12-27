@@ -26,7 +26,20 @@ public sealed class ElseError<T> : Parser<T>, ICompilable
         if (!_parser.Parse(context, ref result))
         {
             context.ExitParser(this);
-            throw new ParseException(_message, context.Scanner.Cursor.Position);
+            
+            if (context.ContinueOnError)
+            {
+                context.Errors.Add(new ParseError
+                {
+                    Message = _message,
+                    Position = context.Scanner.Cursor.Position
+                });
+                return false;
+            }
+            else
+            {
+                throw new ParseException(_message, context.Scanner.Cursor.Position);
+            }
         }
 
         context.ExitParser(this);
@@ -97,7 +110,19 @@ public sealed class Error<T> : Parser<T>, ICompilable
         if (_parser.Parse(context, ref result))
         {
             context.ExitParser(this);
-            throw new ParseException(_message, context.Scanner.Cursor.Position);
+            
+            if (context.ContinueOnError)
+            {
+                context.Errors.Add(new ParseError
+                {
+                    Message = _message,
+                    Position = context.Scanner.Cursor.Position
+                });
+            }
+            else
+            {
+                throw new ParseException(_message, context.Scanner.Cursor.Position);
+            }
         }
 
         context.ExitParser(this);
@@ -171,7 +196,19 @@ public sealed class Error<T, U> : Parser<U>, ICompilable, ISeekable
         if (_parser.Parse(context, ref parsed))
         {
             context.ExitParser(this);
-            throw new ParseException(_message, context.Scanner.Cursor.Position);
+            
+            if (context.ContinueOnError)
+            {
+                context.Errors.Add(new ParseError
+                {
+                    Message = _message,
+                    Position = context.Scanner.Cursor.Position
+                });
+            }
+            else
+            {
+                throw new ParseException(_message, context.Scanner.Cursor.Position);
+            }
         }
 
         context.ExitParser(this);

@@ -36,6 +36,20 @@ public class ParseContext
     public bool UseNewLines { get; }
 
     /// <summary>
+    /// Whether parsing should continue after encountering an error. Default is <c>false</c>.
+    /// </summary>
+    /// <remarks>
+    /// When <c>false</c>, the parser will throw a <see cref="ParseException"/> on the first error.
+    /// When <c>true</c>, errors will be collected in the <see cref="Errors"/> list and parsing will continue.
+    /// </remarks>
+    public bool ContinueOnError { get; }
+
+    /// <summary>
+    /// List of errors encountered during parsing when <see cref="ContinueOnError"/> is enabled.
+    /// </summary>
+    public List<ParseError> Errors { get; } = new List<ParseError>();
+
+    /// <summary>
     /// The scanner used for the parsing session.
     /// </summary>
     public readonly Scanner Scanner;
@@ -52,22 +66,23 @@ public class ParseContext
 
     // TODO: For backward compatibility only, remove in future versions
     public ParseContext(Scanner scanner, bool useNewLines)
-        : this(scanner, useNewLines, false, CancellationToken.None)
+        : this(scanner, useNewLines, false, false, CancellationToken.None)
     {
     }
 
     // TODO: For backward compatibility only, remove in future versions
     public ParseContext(Scanner scanner, CancellationToken cancellationToken)
-        : this(scanner, false, false, cancellationToken)
+        : this(scanner, false, false, false, cancellationToken)
     {
     }
 
-    public ParseContext(Scanner scanner, bool useNewLines = false, bool disableLoopDetection = false, CancellationToken cancellationToken = default)
+    public ParseContext(Scanner scanner, bool useNewLines = false, bool disableLoopDetection = false, bool continueOnError = false, CancellationToken cancellationToken = default)
     {
         Scanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
         UseNewLines = useNewLines;
         CancellationToken = cancellationToken;
         DisableLoopDetection = disableLoopDetection;
+        ContinueOnError = continueOnError;
         
         _activeParserPositions = !disableLoopDetection ? new HashSet<ParserPosition>(ParserPositionComparer.Instance) : null!;
     }
