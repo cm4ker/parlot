@@ -118,6 +118,7 @@ public sealed class Error<T> : Parser<T>, ICompilable
                     Message = _message,
                     Position = context.Scanner.Cursor.Position
                 });
+                return false;
             }
             else
             {
@@ -204,6 +205,7 @@ public sealed class Error<T, U> : Parser<U>, ICompilable, ISeekable
                     Message = _message,
                     Position = context.Scanner.Cursor.Position
                 });
+                return false;
             }
             else
             {
